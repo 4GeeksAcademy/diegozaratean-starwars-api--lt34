@@ -9,11 +9,30 @@ class User(db.Model):
     is_active = db.Column(db.Boolean(), unique=False, nullable=False)
 
     def __repr__(self):
-        return '<User %r>' % self.username
+        return '<Usuario %r>' % self.email
 
     def serialize(self):
         return {
             "id": self.id,
             "email": self.email,
+            "activo": self.is_active
+            # do not serialize the password, its a security breach
+        }
+
+
+class Equipo(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(250), nullable=False)
+    color = db.Column(db.String(250), nullable=False)
+    estadios = db.Column(db.String(250), nullable=False)  
+
+    def __repr__(self):
+        return '<Equipos Team %r>' % self.nombre
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "nombre": self.nombre,
+            "estadios":self.estadios
             # do not serialize the password, its a security breach
         }
