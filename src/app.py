@@ -64,9 +64,31 @@ def get_team(team_id):
     print(team_id)
     team = Equipo.query.filter_by(id=team_id).first()
     print(team)   
+    db.session.delete(team)
+    db.session.commit()
 
     return jsonify(team.serialize()), 200
 
+@app.route('/equipo', methods=['POST'])
+def add_team():
+    print('POST equipo')
+    # leer datos del body del request
+    print(request)
+    print(request.get_json())
+    print(request.get_json()['nombre'])
+    body = request.get_json()
+    # guardar un equipo en la BD
+    team = Equipo(nombre = body['nombre'],color = body['color'],estadios = body['estadios'])
+    # team = Equipo(**body)
+    db.session.add(team)
+    db.session.commit()
+
+    response_body = {
+        "msg": "Se creo el equipo",
+        
+    }
+
+    return jsonify(response_body), 200
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
