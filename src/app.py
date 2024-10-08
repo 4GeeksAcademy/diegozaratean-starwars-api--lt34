@@ -10,6 +10,10 @@ from utils import APIException, generate_sitemap
 from admin import setup_admin
 from models import db, User, Equipo
 #from models import Person
+from flask_jwt_extended import create_access_token
+from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import jwt_required
+from flask_jwt_extended import JWTManager
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
@@ -26,6 +30,13 @@ db.init_app(app)
 CORS(app)
 setup_admin(app)
 
+# Setup the Flask-JWT-Extended extension
+app.config["JWT_SECRET_KEY"] = "super-secret esto lo debo actualizar"  # Change this!
+jwt = JWTManager(app)
+# perro ===== perroa. , montaña === montañaa
+# perro ===== peperropo. , montaña === monpotapañapa
+# perro ===== asdfasfasdfasdfasdfasdf. , montaña === 12kj3412j3h4kj12h3k4j2hk
+
 # Handle/serialize errors like a JSON object
 @app.errorhandler(APIException)
 def handle_invalid_usage(error):
@@ -37,6 +48,7 @@ def sitemap():
     return generate_sitemap(app)
 
 @app.route('/user', methods=['GET'])
+@jwt_required()
 def handle_hello():
     print('debugueando')
     all_users = User.query.all()
@@ -89,6 +101,30 @@ def add_team():
     }
 
     return jsonify(response_body), 200
+
+@app.route("/login", methods=["POST"])
+def login():
+    email = request.json.get("email", None)
+    password = request.json.get("password", None)
+    user = User.query.filter_by(email=email).first()
+    if user is None:
+        return jsonify({"msg": "No se encontro ese usuario"}), 401
+    print(user)
+    print(user.email)
+    if password != user.password:
+        return jsonify({"msg": "La clave es incorrecta"}), 401
+
+    access_token = create_access_token(identity=email)
+    return jsonify(access_token=access_token)
+
+
+@app.route("/protected", methods=["GET"])
+@jwt_required()
+def protected():
+    # Access the identity of the current user with get_jwt_identity
+    current_user = get_jwt_identity()
+    return jsonify(logged_in_as=current_user), 200
+
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
